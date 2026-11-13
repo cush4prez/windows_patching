@@ -1,0 +1,9 @@
+---
+- name: Stop user defined services
+  ansible.windows.win_service:
+    name: {{ service }}
+    state: stopped
+  loop: "{{ user_stopped_services }}"
+  loop_control:
+    loop_var: service
+    

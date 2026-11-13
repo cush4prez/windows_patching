@@ -1,0 +1,35 @@
+#SPDX-License-Identifier: MIT-0
+---
+- name: Capture current OS version
+  ansible.builtin.set_var:
+    pre_patch_os_version: "{{ ansible_distribution_version}}"
+
+- name: Ensure Expected windows version
+  ansible.builtin.assert:
+    that: 
+      - " {{ ansible_distribution_major_version }} == {{ expected_os_major_version }}"
+      - " {{ ansible_distribution_minor_version }} == {{ expected_os_minor_version }}"
+  when: expected_os_major_version | length > 0 and expected_os_minor_version | length > 0
+
+- name: End Necessary services
+  ansible.builtin.include_tasks: services.yml
+  when: user_stopped_services | length > 0
+
+- name: Perform Windows Patch
+  ansible.builtin.include_tasks: patching.yml
+
+- name: Verify Patching took place
+  block:
+  - name: Pull updated vars
+    ansible.builtin.setup:
+  
+  - name: verify version change
+    ansible.builtin.assert:
+      that: ansible_distribution_version is ansible.builtin.version('pre_patch_os_version')
+    register: version_return
+
+  rescue:
+  - name: Display failure if version not updated
+    ansible.builtin.debug:
+      msg: "Patching failed, still on pre patch os version"
+    when: version_return.failed

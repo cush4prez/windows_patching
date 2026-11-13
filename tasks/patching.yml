@@ -1,0 +1,23 @@
+---
+
+- name: Windows patching
+  block:
+  - name: Perform Windows Patch (All with reboot)
+    ansible.windows.win_updates:
+      category_names: "{{ custom_category_list }}"
+      reject_list: "{{ custom_reject_list }}"
+      reboot: "{{ perform_reboot }}"
+    register: patching_results
+
+  rescue:
+  - name: Update Failed
+    ansible.builtin.debug:
+      msg: "Error: {{ patching_results.stdout }}"
+    when: patching_results.failed
+
+  - name: Alert to pending reboot
+    ansible.builtin.debug:
+      msg: "Post Patch Reboot Pending but perform_reboot set to {{ perform_reboot }}"
+    when: pathching_results.msg contains 'A reboot is required'
+    
+
