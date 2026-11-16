@@ -1,0 +1,21 @@
+---
+- name: Apply Windows Server Patching
+  hosts: all
+  gather_facts: true
+
+  pre_tasks:
+    - name: Mormalize Windows patching survey inputs from AAP
+      ansible.builtin.set_facts:
+        windows_patching_categories: >-
+          {{
+            patch_categories_input.replace('\n', ',').split(','"
+            | map('trim')
+            | reject('equalto', '')
+            | list
+          }}
+      when:
+        - patch_categories_input is defined
+        - patch_categories_input | strind | trim | length > 0
+
+  roles:
+    - role: windows_patching
