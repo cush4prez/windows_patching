@@ -5,7 +5,7 @@
 
   pre_tasks:
     - name: Mormalize Windows patching survey inputs from AAP
-      ansible.builtin.set_facts:
+      ansible.builtin.set_fact:
         windows_patching_categories: >-
           {{
             patch_categories_input.replace('\n', ',').split(','"
