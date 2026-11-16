@@ -1,35 +1,48 @@
 #SPDX-License-Identifier: MIT-0
 ---
+- name: Gather Windows OS facts
+  ansible.windows.setup:
+    gather_subset:
+      - distribution
+
 - name: Capture current OS version
   ansible.builtin.set_fact:
-    pre_patch_os_version: "{{ ansible_distribution_version}}"
+    pre_patch_os_version: "{{ ansible_distribution_version }}"
 
-- name: Ensure Expected windows version
+- name: Ensure expected Windows version
   ansible.builtin.assert:
-    that: 
-      - " {{ ansible_distribution_major_version }} == {{ expected_os_major_version }}"
-      - " {{ ansible_distribution_minor_version }} == {{ expected_os_minor_version }}"
-  when: expected_os_major_version | length > 0 and expected_os_minor_version | length > 0
+    that:
+      - ansible_distribution_major_version | string == expected_os_major_version | string
+      - ansible_distribution_minor_version | string == expected_os_minor_version | string
+    fail_msg: >-
+      OS version mismatch. Expected {{ expected_os_major_version }}.{{ expected_os_minor_version }},
+      found {{ ansible_distribution_major_version }}.{{ ansible_distribution_minor_version }}.
+  when:
+    - expected_os_major_version | default('') | string | length > 0
+    - expected_os_minor_version | default('') | string | length > 0
 
-- name: End Necessary services
+- name: End necessary services
   ansible.builtin.include_tasks: services.yml
-  when: user_stopped_services | length > 0
+  when: user_stopped_services | default([]) | length > 0
 
 - name: Perform Windows Patch
   ansible.builtin.include_tasks: patching.yml
 
-- name: Verify Patching took place
+- name: Verify patching took place
   block:
-  - name: Pull updated vars
-    ansible.builtin.setup:
-  
-  - name: verify version change
-    ansible.builtin.assert:
-      that: ansible_distribution_version is ansible.builtin.version('pre_patch_os_version')
-    register: version_return
+    - name: Pull updated OS facts
+      ansible.windows.setup:
+        gather_subset:
+          - distribution
+
+    - name: Verify OS build version increased
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution_version is ansible.builtin.version(pre_patch_os_version, '>')
+      register: version_return
 
   rescue:
-  - name: Display failure if version not updated
-    ansible.builtin.debug:
-      msg: "Patching failed, still on pre patch os version"
-    when: version_return.failed
+    - name: Display failure if version not updated
+      ansible.builtin.debug:
+        msg: "Patching did not increment OS build version (still on {{ ansible_distribution_version }})."
+      when: version_return is failed
