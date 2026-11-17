@@ -1,7 +1,7 @@
 ---
 - name: Apply Windows Server Patching
   hosts: all
-  gather_facts: false
+  gather_facts: true
 
   pre_tasks:
     - name: Mormalize Windows patching survey inputs from AAP
