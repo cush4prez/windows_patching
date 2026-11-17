@@ -20,4 +20,11 @@
       msg: "Post Patch Reboot Pending but perform_reboot set to {{ perform_reboot }}"
     when: pathching_results.msg contains 'A reboot is required'
     
-
+  - name: Update Report
+    ansible.builtin.debug:
+      msg: |-
+      ==================================
+      Number of Updates: {{ patching_results.installed_update_count }}
+      System Rebooted: {{ patching_results.rebooted }}
+      Updates performed: {{ patching_results.updates }}
+      ==================================
