@@ -1,30 +1,29 @@
 ---
-
 - name: Windows patching
   block:
-  - name: Perform Windows Patch (All with reboot)
-    ansible.windows.win_updates:
-      category_names: "{{ custom_category_list }}"
-      reject_list: "{{ custom_reject_list }}"
-      reboot: "{{ perform_reboot }}"
-    register: patching_results
+    - name: Perform Windows Patch (All with reboot)
+      ansible.windows.win_updates:
+        category_names: "{{ custom_category_list | default(['CriticalUpdates', 'SecurityUpdates']) }}"
+        reject_list: "{{ custom_reject_list | default([]) }}"
+        reboot: "{{ perform_reboot | default(true) }}"
+      register: patching_results
+
+    - name: Update Report
+      ansible.builtin.debug:
+        msg: |-
+          ==================================
+          Number of Updates: {{ patching_results.installed_update_count | default(0) }}
+          System Rebooted: {{ patching_results.rebooted | default(false) }}
+          Updates performed: {{ patching_results.updates | default({}) }}
+          ==================================
 
   rescue:
-  - name: Update Failed
-    ansible.builtin.debug:
-      msg: "Error: {{ patching_results.stdout }}"
-    when: patching_results.failed
+    - name: Update Failed
+      ansible.builtin.debug:
+        msg: "Error: {{ patching_results.msg | default(patching_results.stdout | default('Unknown error')) }}"
+      when: patching_results is failed
 
-  - name: Alert to pending reboot
-    ansible.builtin.debug:
-      msg: "Post Patch Reboot Pending but perform_reboot set to {{ perform_reboot }}"
-    when: pathching_results.msg contains 'A reboot is required'
-    
-  - name: Update Report
-    ansible.builtin.debug:
-      msg: |-
-      ==================================
-      Number of Updates: {{ patching_results.installed_update_count }}
-      System Rebooted: {{ patching_results.rebooted }}
-      Updates performed: {{ patching_results.updates }}
-      ==================================
+    - name: Alert to pending reboot
+      ansible.builtin.debug:
+        msg: "Post Patch Reboot Pending but perform_reboot set to {{ perform_reboot }}"
+      when: "'A reboot is required' in (patching_results.msg | default(''))"
