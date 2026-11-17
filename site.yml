@@ -8,14 +8,28 @@
       ansible.builtin.set_fact:
         custom_category_list: >-
           {{
-            patch_categories_input.replace('\n', ',').split(',')
+            (patch_categories_input | default('CriticalUpdates, SecurityUpdates') | string)
+            .replace('\n', ',').split(',')
             | map('trim')
             | reject('equalto', '')
             | list
           }}
-      when:
-        - patch_categories_input is defined
-        - patch_categories_input | string | trim | length > 0
+        custom_reject_list: >-
+          {{
+            (reject_list_input | default('') | string)
+            .replace('\n', ',').split(',')
+            | map('trim')
+            | reject('equalto', '')
+            | list
+          }}
+        user_stopped_services: >-
+          {{
+            (stopped_services_input | default('') | string)
+            .replace('\n', ',').split(',')
+            | map('trim')
+            | reject('equalto', '')
+            | list
+          }}
 
   roles:
     - role: windows_patching
