@@ -12,11 +12,12 @@
 - name: Ensure Expected windows version
   ansible.builtin.assert:
     that:
-      - ansible_facts['distribution_major_version'] | string == expected_os_major_version | string
-      - ansible_facts['distribution_minor_version'] | string == expected_os_minor_version | string
+      - (ansible_facts['distribution_version'].split('.')[0] | string) == (expected_os_major_version | string)
+      - (ansible_facts['distribution_version'].split('.')[1] | string) == (expected_os_minor_version | string)
     fail_msg: >-
       Expected OS {{ expected_os_major_version }}.{{ expected_os_minor_version }},
-      but found {{ ansible_facts['distribution_major_version'] }}.{{ ansible_facts['distribution_minor_version'] }}.
+      but found {{ ansible_facts['distribution_version'].split('.')[0] }}.{{ ansible_facts['distribution_version'].split('.')[1] }}
+      ({{ ansible_facts['distribution_version'] }}).
   when:
     - expected_os_major_version | default('') | string | length > 0
     - expected_os_minor_version | default('') | string | length > 0
