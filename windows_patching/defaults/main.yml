@@ -1,18 +1,9 @@
-#SPDX-License-Identifier: MIT-0
 ---
-# defaults file for windows_patching
-custom_category_list: "*"
-
-custom_reject_list: ""
-
-custom_accept_list: ""
-
-# var for defining a list of services to stop before patching
-
-
-# by default patching work will reboot servers
-perform_reboot: true
-
-# vars for customization of specific OS major and minor versioning
 expected_os_major_version: ""
 expected_os_minor_version: ""
+user_stopped_services: []
+custom_category_list:
+  - CriticalUpdates
+  - SecurityUpdates
+custom_reject_list: []
+perform_reboot: true
