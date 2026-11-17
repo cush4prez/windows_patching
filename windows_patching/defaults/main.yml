@@ -1,6 +1,4 @@
 ---
-expected_os_major_version: ""
-expected_os_minor_version: ""
 user_stopped_services: []
 custom_category_list:
   - CriticalUpdates
