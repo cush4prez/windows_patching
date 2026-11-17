@@ -1,7 +1,7 @@
 #SPDX-License-Identifier: MIT-0
 ---
 - name: Capture current OS version
-  ansible.builtin.set_var:
+  ansible.builtin.set_fact:
     pre_patch_os_version: "{{ ansible_distribution_version}}"
 
 - name: Ensure Expected windows version
