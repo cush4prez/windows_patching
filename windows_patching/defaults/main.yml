@@ -1,7 +1,0 @@
----
-user_stopped_services: []
-custom_category_list:
-  - CriticalUpdates
-  - SecurityUpdates
-custom_reject_list: []
-perform_reboot: true
