@@ -12,12 +12,20 @@
       ansible.builtin.debug:
         msg: |-
           ==================================
-          Number of Updates: {{ patching_results.installed_update_count | default(0) }}
+          Host: {{ inventory_hostname }}
+          Number of Updates Installed: {{ patching_results.installed_update_count | default(0) }}
           System Rebooted: {{ patching_results.rebooted | default(false) }}
-          Updates performed: {{ patching_results.updates | default({}) }}
+          Updates Performed:
+          {% set updates = patching_results.updates | default({}) | dict2items %}
+          {% if updates | length > 0 %}
+          {% for item in updates %}
+            - [{{ 'INSTALLED' if item.value.installed else 'FAILED/SKIPPED' }}] {{ item.value.title }} (KB{{ item.value.kb | join(', KB') }})
+          {% endfor %}
+          {% else %}
+            - None
+          {% endif %}
           ==================================
 
-  rescue:
     - name: Update Failed
       ansible.builtin.debug:
         msg: "Error: {{ patching_results.msg | default(patching_results.stdout | default('Unknown error')) }}"
